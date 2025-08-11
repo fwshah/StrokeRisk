@@ -2,6 +2,26 @@ import streamlit as st
 import pandas as pd
 import sys
 import os
+# **********************************************************
+
+# --- 1) Make the app root importable (top of the file)
+from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[1]   # parent of /pages
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+# --- 2) Streamlit imports + page config (must be first Streamlit call)
+import streamlit as st
+st.set_page_config(page_title="Patient Data Entry", layout="wide")
+
+# --- 3) Now import your app modules from the root
+from stroke_predictor_pkl import predict_stroke_risk
+
+# ...rest of your page code...
+# **********************************************************
+
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 try:
     from stroke_predictor_pkl import predict_stroke_risk
