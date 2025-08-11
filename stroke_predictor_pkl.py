@@ -180,34 +180,30 @@ def preprocess_input(input_data):
     return processed
 
 def predict_stroke_risk(input_data):
-    """Final working prediction function"""
     try:
         validate_input(input_data)
         processed_data = preprocess_input(input_data)
-        
-        # Create dataframe with EXACTLY the right columns in right order
-        df = pd.DataFrame([processed_data], columns=[
-            'age', 'hypertension', 'heart_disease', 'avg_glucose_level', 'bmi',
-            'gender_Male', 'gender_Other', 'ever_married_Yes',
-            'work_type_Never_worked', 'work_type_Private',
-            'work_type_Self-employed', 'work_type_children',
-            'Residence_type_Urban', 'smoking_status_formerly smoked',
-            'smoking_status_never smoked', 'smoking_status_smokes',
-            'age_group_19-30', 'age_group_31-45', 'age_group_46-60',
-            'age_group_61-75', 'age_group_76+'
-        ])
-        
-        # Get prediction
+
+        df = pd.DataFrame([processed_data])
+
+        # Ensure every expected feature exists; fill missing with 0
+        for col in model_features:
+            if col not in df.columns:
+                df[col] = 0
+
+        # Keep only expected columns and order them exactly
+        df = df.reindex(columns=model_features)
+
         prediction = model.predict(df)[0]
         probabilities = model.predict_proba(df)[0]
-        
+
         return {
             "status": "success",
             "prediction": int(prediction),
             "probabilities": probabilities.tolist(),
             "risk_level": "High Risk" if prediction == 1 else "Low Risk",
             "probability_percent": f"{probabilities[1]*100:.1f}%",
-            "probability_raw": float(probabilities[1])
+            "probability_raw": float(probabilities[1]),
         }
     except Exception as e:
         return {
@@ -216,8 +212,47 @@ def predict_stroke_risk(input_data):
             "risk_level": "Error",
             "probability_percent": "0.0%",
             "probabilities": [0.0, 0.0],
-            "probability_raw": 0.0
+            "probability_raw": 0.0,
         }
+# def predict_stroke_risk(input_data):
+#     """Final working prediction function"""
+#     try:
+#         validate_input(input_data)
+#         processed_data = preprocess_input(input_data)
+        
+#         # Create dataframe with EXACTLY the right columns in right order
+#         df = pd.DataFrame([processed_data], columns=[
+#             'age', 'hypertension', 'heart_disease', 'avg_glucose_level', 'bmi',
+#             'gender_Male', 'gender_Other', 'ever_married_Yes',
+#             'work_type_Never_worked', 'work_type_Private',
+#             'work_type_Self-employed', 'work_type_children',
+#             'Residence_type_Urban', 'smoking_status_formerly smoked',
+#             'smoking_status_never smoked', 'smoking_status_smokes',
+#             'age_group_19-30', 'age_group_31-45', 'age_group_46-60',
+#             'age_group_61-75', 'age_group_76+'
+#         ])
+        
+#         # Get prediction
+#         prediction = model.predict(df)[0]
+#         probabilities = model.predict_proba(df)[0]
+        
+#         return {
+#             "status": "success",
+#             "prediction": int(prediction),
+#             "probabilities": probabilities.tolist(),
+#             "risk_level": "High Risk" if prediction == 1 else "Low Risk",
+#             "probability_percent": f"{probabilities[1]*100:.1f}%",
+#             "probability_raw": float(probabilities[1])
+#         }
+#     except Exception as e:
+#         return {
+#             "status": "error",
+#             "error": str(e),
+#             "risk_level": "Error",
+#             "probability_percent": "0.0%",
+#             "probabilities": [0.0, 0.0],
+#             "probability_raw": 0.0
+#         }
 
 def get_feature_importance(top_n=10):
     """Get feature importance from model"""
